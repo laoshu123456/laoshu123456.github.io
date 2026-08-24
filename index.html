@@ -26,14 +26,14 @@
             window.location.href = reportUrl;
         } else {
             const params = new URLSearchParams({
-             lient_id: clientId,
-             response_type: "id_token",
-             redirect_uri: redirectUri,
-             scope: "openid email profile",
-             prompt: "login",          // 改为 login，强制重新登录
-             login_hint: publicAccount, // 仍会预填，但用户仍可修改
-             nonce: Math.random().toString(36).substring(2, 10)
-         });
+                client_id: clientId,
+                response_type: "id_token",
+                redirect_uri: redirectUri,
+                scope: "openid email profile",
+                prompt: "login",        // 强制重新登录
+                login_hint: publicAccount,
+                nonce: Math.random().toString(36).substring(2, 10)
+            });
             window.location.href = `${authEndpoint}?${params.toString()}`;
         }
     </script>
