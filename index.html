@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh‑CN">
+<head>
+    <meta charset="UTF‑8">
+    <title>公共报表登录入口</title>
+</head>
+<body>
+    <p id="status">正在处理登录……</p>
+    <script>
+        // ========= 填入你的参数 =========
+        const clientId = "c9f64b12-9048-426e-b09c-e2e1d2e89f0c";
+        const tenantId = "29abf16e-95a2-4d13-8d51-6db1b775d45b";
+        const publicAccount = "DETBA@esquel.com";
+        const reportUrl = "https://app.powerbi.com/groups/d621849b-735e-4810-b08b-481e4bf5b7c4/reports/24b719c9-c5f3-4d4d-8499-f15029a35c92/1a3a2916e20ce263c08e?experience=power-bi";
+
+        // ✅ 关键修正：使用全球版 Azure 端点
+        const authEndpoint = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`;
+
+        // ✅ 动态获取当前 HTML 页面的完整地址（协议+域名+路径）
+        const redirectUri = window.location.origin + window.location.pathname;
+
+        // 检查是否已从 Azure AD 返回（带有 id_token）
+        const hash = window.location.hash;
+        if (hash && hash.includes('id_token')) {
+            document.getElementById('status').innerText = '登录成功，正在跳转报表……';
+            window.location.href = reportUrl;
+        } else {
+            const params = new URLSearchParams({
+                client_id: clientId,
+                response_type: "id_token",
+                redirect_uri: redirectUri,
+                scope: "openid email profile",
+                prompt: "select_account",
+                login_hint: publicAccount,
+                nonce: Math.random().toString(36).substring(2, 10)
+            });
+            window.location.href = `${authEndpoint}?${params.toString()}`;
+        }
+    </script>
+</body>
+</html>
