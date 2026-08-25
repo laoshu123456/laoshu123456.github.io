@@ -1,35 +1,66 @@
 <!DOCTYPE html>
-<html lang="zh‑CN">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF‑8">
-    <title>公共报表登录入口</title>
+    <meta charset="UTF-8">
+    <title>报表登录入口</title>
+    <style>
+        body { font-family: Arial; text-align: center; padding: 50px; }
+        .btn { display: inline-block; margin: 10px; padding: 15px 30px; background: #0078d4; color: white; text-decoration: none; border-radius: 5px; }
+        .btn:hover { background: #005a9e; }
+    </style>
 </head>
 <body>
-    <p id="status">正在处理登录……</p>
+    <h1>请选择要查看的报表</h1>
+    <div id="reportLinks">
+        <!-- 按钮将在登录后显示，或直接显示（如果用户已登录） -->
+    </div>
+    <p id="status"></p>
+
     <script>
-        const clientId = "c9f64b12-9048-426e-b09c-e2e1d2e89f0c";
-        const tenantId = "29abf16e-95a2-4d13-8d51-6db1b775d45b";
-        const publicAccount = "DETBA@esquel.com";
-        const reportUrl = "https://app.powerbi.com/groups/d621849b-735e-4810-b08b-481e4bf5b7c4/reports/24b719c9-c5f3-4d4d-8499-f15029a35c92/1a3a2916e20ce263c08e?experience=power-bi";
+        // ========== 配置参数 ==========
+        var clientId = "c9f64b12-9048-426e-b09c-e2e1d2e89f0c";
+        var tenantId = "29abf16e-95a2-4d13-8d51-6db1b775d45b";
+        var publicAccount = "DETBA@esquel.com";
 
-        const authEndpoint = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`;
-        const redirectUri = window.location.origin + window.location.pathname;
+        // 三个报表的 URL（替换成你实际的地址）
+        var reportUrls = {
+            report1: "https://app.powerbi.com/groups/.../report1",
+            report2: "https://app.powerbi.com/groups/.../report2",
+            report3: "https://app.powerbi.com/groups/.../report3"
+        };
 
-        const hash = window.location.hash;
-        if (hash && hash.includes('id_token')) {
-            document.getElementById('status').innerText = '登录成功，正在跳转报表……';
-            window.location.href = reportUrl;
+        // 当前页面地址（Azure AD 中注册的 Redirect URI）
+        var redirectUri = window.location.origin + window.location.pathname;  // 动态获取
+
+        // 检查是否已登录（是否携带 id_token）
+        var hash = window.location.hash;
+        if (hash && hash.indexOf("id_token") !== -1) {
+            // 登录成功，显示报表选择按钮
+            document.getElementById("status").innerHTML = "✅ 登录成功！请选择报表：";
+            showButtons();
         } else {
-            const params = new URLSearchParams({
-                client_id: clientId,
-                response_type: "id_token",
-                redirect_uri: redirectUri,
-                scope: "openid email profile",
-                prompt: "login",        // 强制重新登录
-                login_hint: publicAccount,
-                nonce: Math.random().toString(36).substring(2, 10)
-            });
-            window.location.href = `${authEndpoint}?${params.toString()}`;
+            // 未登录，自动跳转 Azure AD 登录
+            document.getElementById("status").innerHTML = "正在跳转登录……";
+            var authUrl = 
+                "https://login.microsoftonline.com/" + tenantId + "/oauth2/v2.0/authorize" +
+                "?client_id=" + encodeURIComponent(clientId) +
+                "&response_type=id_token" +
+                "&redirect_uri=" + encodeURIComponent(redirectUri) +
+                "&scope=openid%20email%20profile" +
+                "&prompt=login" +
+                "&login_hint=" + encodeURIComponent(publicAccount) +
+                "&nonce=" + Math.random().toString(36).substring(2, 10);
+            window.location.href = authUrl;
+        }
+
+        // 显示三个报表按钮
+        function showButtons() {
+            var container = document.getElementById("reportLinks");
+            var html = "";
+            for (var key in reportUrls) {
+                html += '<a href="' + reportUrls[key] + '" class="btn" target="_blank">📊 ' + key + '</a>';
+            }
+            container.innerHTML = html;
         }
     </script>
 </body>
